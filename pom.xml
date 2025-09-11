@@ -20,6 +20,10 @@
     <name>spring-boot-microservices</name>
     <description>spring-boot-microservices</description>
 
+    <modules>
+        <module>token-topic-kafka-service</module>
+    </modules>
+
     <properties>
         <java.version>8</java.version>
 
