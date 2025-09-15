@@ -67,6 +67,8 @@
                 <version>${flyway.version}</version>
                 <configuration>
                     <locations>
+                        <!-- Include filesystem location so new migrations are detected without a rebuild -->
+                        <location>filesystem:src/main/resources/db/migration</location>
                         <location>classpath:db/migration</location>
                     </locations>
                     <validateOnMigrate>false</validateOnMigrate>
