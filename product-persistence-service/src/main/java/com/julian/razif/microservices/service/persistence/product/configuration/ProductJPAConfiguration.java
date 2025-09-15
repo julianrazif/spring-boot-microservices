@@ -37,7 +37,7 @@ public class ProductJPAConfiguration {
 
   @Bean(name = "productDataSource")
   @ConfigurationProperties("spring.datasource.product.hikari")
-  public HikariDataSource bifastDataSource() {
+  public HikariDataSource productDataSource() {
     return DataSourceBuilder.create()
       .type(HikariDataSource.class)
       .url(url)
