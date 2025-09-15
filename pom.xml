@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.18</version>
+        <version>3.5.5</version>
         <relativePath/>
     </parent>
 
@@ -28,22 +28,20 @@
     </modules>
 
     <properties>
-        <java.version>8</java.version>
+        <java.version>21</java.version>
 
-        <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
 
-        <spring.boot.version>2.7.18</spring.boot.version>
-        <jackson-bom.version>2.13.5</jackson-bom.version>
-        <lombok.version>1.18.32</lombok.version>
-        <spring-kafka.version>2.8.11</spring-kafka.version>
-        <firebase-admin.version>9.1.1</firebase-admin.version>
+        <spring.boot.version>3.5.5</spring.boot.version>
+        <jackson-bom.version>2.19.2</jackson-bom.version>
+        <lombok.version>1.18.38</lombok.version>
+        <spring-kafka.version>3.3.9</spring-kafka.version>
+        <firebase-admin.version>9.6.0</firebase-admin.version>
         <bouncycastle.version>1.70</bouncycastle.version>
         <picketbox.version>5.0.3.Final</picketbox.version>
 
-        <postgresql.version>42.3.8</postgresql.version>
-        <hikaricp.version>4.0.3</hikaricp.version>
+        <postgresql.version>42.7.7</postgresql.version>
+        <hikaricp.version>6.3.2</hikaricp.version>
 
         <flyway.version>11.7.2</flyway.version>
     </properties>
@@ -99,12 +97,12 @@
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-starter-log4j2</artifactId>
-                <version>2.7.18</version>
+                <version>${spring.boot.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-spring-boot</artifactId>
-                <version>2.17.2</version>
+                <version>2.24.3</version>
             </dependency>
 
             <!-- lombok -->
@@ -152,23 +150,12 @@
             <dependency>
                 <groupId>org.redisson</groupId>
                 <artifactId>redisson-spring-boot-starter</artifactId>
-                <version>3.19.3</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.redisson</groupId>
-                        <artifactId>redisson-spring-data-30</artifactId>
-                    </exclusion>
-                </exclusions>
+                <version>3.51.0</version>
             </dependency>
             <dependency>
                 <groupId>org.redisson</groupId>
                 <artifactId>redisson</artifactId>
-                <version>3.19.3</version>
-            </dependency>
-            <dependency>
-                <groupId>org.redisson</groupId>
-                <artifactId>redisson-spring-data-27</artifactId>
-                <version>3.19.3</version>
+                <version>3.51.0</version>
             </dependency>
 
             <!-- postgresql -->
@@ -207,8 +194,7 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${maven-compiler-plugin.version}</version>
                     <configuration>
-                        <source>${maven.compiler.source}</source>
-                        <target>${maven.compiler.target}</target>
+                        <release>${java.version}</release>
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>org.projectlombok</groupId>

@@ -31,7 +31,7 @@ public class TokenListener {
       .token("token")
       .deviceId("deviceId");
 
-    tokenProcessedEventKafkaTemplate.send(tokenProcessedTopic, event.deviceId(), result).completable()
+    tokenProcessedEventKafkaTemplate.send(tokenProcessedTopic, event.deviceId(), result)
       .whenComplete((md, ex) -> {
         if (ex != null) {
           log.error("Failed to publish TokenProcessedEvent", ex);
