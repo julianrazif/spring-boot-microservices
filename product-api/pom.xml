@@ -175,6 +175,10 @@
                                         <include>**/controller/CartController*.class</include>
                                         <include>**/controller/UserController*.class</include>
                                         <include>**/controller/GlobalExceptionHandler*.class</include>
+                                        <include>**/service/ProductService*.class</include>
+                                        <include>**/service/CategoryService*.class</include>
+                                        <include>**/service/BannerService*.class</include>
+                                        <include>**/service/UserService*.class</include>
                                     </includes>
                                     <limits>
                                         <limit>
