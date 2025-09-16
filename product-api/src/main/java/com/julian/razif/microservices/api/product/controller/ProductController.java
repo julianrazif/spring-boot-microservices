@@ -79,7 +79,13 @@ public class ProductController {
     @Valid @RequestBody(required = false) ProductEnvelope payload) {
 
     ProductDTO req = (payload == null) ? null : payload.product();
-    if (req == null) return notFound();
+    if (req == null) return ResponseEntity.badRequest().body(Map.of("errors", List.of(
+      "category is required",
+      "product name is required",
+      "image URL is required",
+      "price is required",
+      "stock is required"
+    )));
 
     UUID categoryId = parseUUID(req.categoryId());
     if (categoryId == null) {
@@ -92,8 +98,15 @@ public class ProductController {
     BigDecimal price = parseBigDecimal(req.price());
     BigDecimal stock = parseBigDecimal(req.stock());
 
+    List<String> errors = new ArrayList<>();
+    if (price == null) errors.add("price is not valid");
+    if (stock == null) errors.add("stock is not valid");
+    if (!errors.isEmpty()) {
+      return ResponseEntity.badRequest().body(Map.of("errors", errors));
+    }
+
     Product p = productService.create(req, categoryId, price, stock);
-    if (p == null) return notFound();
+    if (p == null) return ResponseEntity.status(404).body(Map.of("errors", List.of("product not found")));
     return new ResponseEntity<>(Collections.singletonMap("product", productMapper.toProductDto(p)), HttpStatus.CREATED);
   }
 
@@ -104,10 +117,16 @@ public class ProductController {
     @Valid @RequestBody(required = false) ProductEnvelope payload) {
 
     UUID id = parseUUID(productId);
-    if (id == null) return notFound();
+    if (id == null) return ResponseEntity.status(404).body(Map.of("errors", List.of("product not found")));
 
     ProductDTO req = (payload == null) ? null : payload.product();
-    if (req == null) return notFound();
+    if (req == null) return ResponseEntity.badRequest().body(Map.of("errors", List.of(
+      "category is required",
+      "product name is required",
+      "image URL is required",
+      "price is required",
+      "stock is required"
+    )));
 
     UUID categoryId = parseUUID(req.categoryId());
     if (categoryId == null) {
@@ -119,8 +138,15 @@ public class ProductController {
     BigDecimal price = parseBigDecimal(req.price());
     BigDecimal stock = parseBigDecimal(req.stock());
 
+    List<String> errors = new ArrayList<>();
+    if (price == null) errors.add("price is not valid");
+    if (stock == null) errors.add("stock is not valid");
+    if (!errors.isEmpty()) {
+      return ResponseEntity.badRequest().body(Map.of("errors", errors));
+    }
+
     Product p = productService.update(id, req, categoryId, price, stock);
-    if (p == null) return notFound();
+    if (p == null) return ResponseEntity.status(404).body(Map.of("errors", List.of("product not found")));
     return ResponseEntity.ok(Collections.singletonMap("product", productMapper.toProductDto(p)));
   }
 
@@ -129,9 +155,9 @@ public class ProductController {
     @PathVariable("productId") String productId) {
 
     UUID id = parseUUID(productId);
-    if (id == null) return notFound();
+    if (id == null) return ResponseEntity.status(404).body(Map.of("errors", List.of("product not found")));
     boolean ok = productService.delete(id);
-    if (!ok) return notFound();
+    if (!ok) return ResponseEntity.status(404).body(Map.of("errors", List.of("product not found")));
     return ResponseEntity.ok(Collections.singletonMap("message", "product deleted successfully"));
   }
 

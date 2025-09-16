@@ -1,5 +1,6 @@
 package com.julian.razif.microservices.api.product.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -7,6 +8,7 @@ import jakarta.validation.constraints.Size;
 public record ProductDTO(
   @NotNull(message = "category is required")
   @Pattern(regexp = ".*\\S.*", message = "category can not be empty")
+  @JsonProperty("CategoryId")
   String categoryId,
 
   @NotNull(message = "product name is required")
@@ -16,6 +18,7 @@ public record ProductDTO(
 
   @NotNull(message = "image URL is required")
   @Pattern(regexp = ".*\\S.*", message = "image URL can not empty")
+  @JsonProperty("image_url")
   String imageUrl,
 
   @NotNull(message = "price is required")
