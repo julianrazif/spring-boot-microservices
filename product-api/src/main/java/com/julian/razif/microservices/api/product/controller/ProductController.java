@@ -1,6 +1,5 @@
 package com.julian.razif.microservices.api.product.controller;
 
-import com.julian.razif.microservices.api.product.ProductUtils;
 import com.julian.razif.microservices.api.product.dto.ProductDTO;
 import com.julian.razif.microservices.api.product.dto.ProductEnvelope;
 import com.julian.razif.microservices.api.product.mapper.ProductMapper;
@@ -18,7 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.*;
 
-import static com.julian.razif.microservices.api.product.ProductUtils.*;
+import static com.julian.razif.microservices.api.product.ProductUtils.parseBigDecimal;
+import static com.julian.razif.microservices.api.product.ProductUtils.parseUUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -67,11 +67,11 @@ public class ProductController {
     @PathVariable("productId") String productId) {
 
     UUID id = parseUUID(productId);
-    if (id == null) return notFound();
+    if (id == null) return ResponseEntity.status(404).body(Map.of("errors", List.of("product not found")));
 
     return productService.getById(id)
       .<ResponseEntity<?>>map(p -> ResponseEntity.ok(Collections.singletonMap("data", productMapper.toProductDto(p))))
-      .orElseGet(ProductUtils::notFound);
+      .orElseGet(() -> ResponseEntity.status(404).body(Map.of("errors", List.of("product not found"))));
   }
 
   @PostMapping("/products")

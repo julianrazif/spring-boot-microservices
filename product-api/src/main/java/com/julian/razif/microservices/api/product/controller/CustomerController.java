@@ -87,11 +87,11 @@ public class CustomerController {
     @PathVariable("productId") String productId) {
 
     UUID id = parseUUID(productId);
-    if (id == null) return notFound();
+    if (id == null) return ResponseEntity.status(404).body(Map.of("errors", List.of("product not found")));
 
     return productService.getById(id)
       .<ResponseEntity<?>>map(p -> ResponseEntity.ok(Collections.singletonMap("data", productMapper.toProductDto(p))))
-      .orElseGet(ProductUtils::notFound);
+      .orElseGet(() -> ResponseEntity.status(404).body(Map.of("errors", List.of("product not found"))));
   }
 
   @GetMapping("/customer/categories/{categoryId}")
