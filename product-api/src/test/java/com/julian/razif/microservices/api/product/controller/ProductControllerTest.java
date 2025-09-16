@@ -32,6 +32,9 @@ import static org.mockito.Mockito.when;
 @Import(SecurityConfig.class)
 class ProductControllerTest {
 
+  private String customerUser;
+  private String customerPass;
+
   @Autowired
   private WebTestClient webTestClient;
 
@@ -48,6 +51,8 @@ class ProductControllerTest {
   void setUp() {
     adminUser = "admin";
     adminPass = "admin123";
+    customerUser = "customer";
+    customerPass = "customer123";
   }
 
   private Product sampleProduct(UUID id, UUID categoryId) {
@@ -278,6 +283,183 @@ class ProductControllerTest {
       .expectStatus().isNotFound()
       .expectBody()
       .jsonPath("$.errors[0]").isEqualTo("product not found");
+  }
+
+  @Test
+  @DisplayName("PUT /products/{id} returns 200 with product when updated")
+  void update_put_ok() {
+    UUID productId = UUID.randomUUID();
+    UUID categoryId = UUID.randomUUID();
+
+    Product updated = sampleProduct(productId, categoryId);
+    when(productService.update(eq(productId), any(ProductDTO.class), eq(categoryId), eq(new java.math.BigDecimal("1200000")), eq(new java.math.BigDecimal("5"))))
+      .thenReturn(updated);
+    when(productMapper.toProductDto(updated)).thenReturn(sampleProductDto(productId, categoryId));
+
+    String body = "{\n" +
+      "  \"product\": {\n" +
+      "    \"CategoryId\": \"" + categoryId + "\",\n" +
+      "    \"name\": \"Phone XYZ\",\n" +
+      "    \"image_url\": \"http://img/xyz\",\n" +
+      "    \"price\": \"1200000\",\n" +
+      "    \"stock\": \"5\"\n" +
+      "  }\n" +
+      "}";
+
+    webTestClient.put().uri("/products/" + productId)
+      .headers(h -> h.setBasicAuth(adminUser, adminPass))
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(body)
+      .exchange()
+      .expectStatus().isOk()
+      .expectBody()
+      .jsonPath("$.product.id").isEqualTo(productId.toString())
+      .jsonPath("$.product.CategoryId").isEqualTo(categoryId.toString());
+  }
+
+  @Test
+  @DisplayName("PUT /products/{id} with invalid UUID returns 404 product not found")
+  void update_put_invalidUUID() {
+    String body = "{\n" +
+      "  \"product\": {\n" +
+      "    \"CategoryId\": \"" + java.util.UUID.randomUUID() + "\",\n" +
+      "    \"name\": \"Phone XYZ\",\n" +
+      "    \"image_url\": \"http://img/xyz\",\n" +
+      "    \"price\": \"1200000\",\n" +
+      "    \"stock\": \"5\"\n" +
+      "  }\n" +
+      "}";
+
+    webTestClient.put().uri("/products/abc")
+      .headers(h -> h.setBasicAuth(adminUser, adminPass))
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(body)
+      .exchange()
+      .expectStatus().isNotFound()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("product not found");
+  }
+
+  @Test
+  @DisplayName("PUT /products/{id} with null body returns 400 with required field messages")
+  void update_put_nullBody_badRequest() {
+    UUID id = UUID.randomUUID();
+
+    webTestClient.put().uri("/products/" + id)
+      .headers(h -> h.setBasicAuth(adminUser, adminPass))
+      .exchange()
+      .expectStatus().isBadRequest()
+      .expectBody()
+      .jsonPath("$.errors").isArray()
+      .jsonPath("$.errors").value(arr -> org.assertj.core.api.Assertions.assertThat(((List<?>) arr)).hasSize(5));
+  }
+
+  @Test
+  @DisplayName("PUT /products/{id} with invalid CategoryId returns 400 category can not be empty")
+  void update_put_invalidCategory_badRequest() {
+    UUID id = UUID.randomUUID();
+    String body = """
+      {
+        "product": {
+          "CategoryId": "abc",
+          "name": "Phone XYZ",
+          "image_url": "http://img/xyz",
+          "price": "1200000",
+          "stock": "5"
+        }
+      }""";
+
+    webTestClient.put().uri("/products/" + id)
+      .headers(h -> h.setBasicAuth(adminUser, adminPass))
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(body)
+      .exchange()
+      .expectStatus().isBadRequest()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("category can not be empty");
+  }
+
+  @Test
+  @DisplayName("PUT /products/{id} with non-numeric price/stock returns 400 with messages")
+  void update_put_invalidPriceStock_badRequest() {
+    UUID id = UUID.randomUUID();
+    UUID categoryId = java.util.UUID.randomUUID();
+    String body = "{\n" +
+      "  \"product\": {\n" +
+      "    \"CategoryId\": \"" + categoryId + "\",\n" +
+      "    \"name\": \"Phone XYZ\",\n" +
+      "    \"image_url\": \"http://img/xyz\",\n" +
+      "    \"price\": \"abc\",\n" +
+      "    \"stock\": \"x\"\n" +
+      "  }\n" +
+      "}";
+
+    webTestClient.put().uri("/products/" + id)
+      .headers(h -> h.setBasicAuth(adminUser, adminPass))
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(body)
+      .exchange()
+      .expectStatus().isBadRequest()
+      .expectBody()
+      .jsonPath("$.errors").value(arr -> {
+        java.util.List<?> list = (java.util.List<?>) arr;
+        java.util.List<String> strings = list.stream().map(Object::toString).toList();
+        org.assertj.core.api.Assertions.assertThat(strings)
+          .contains("price is not valid", "stock is not valid");
+      });
+  }
+
+  @Test
+  @DisplayName("PATCH /products/{id} returns 200 with product when updated")
+  void update_patch_ok() {
+    UUID productId = UUID.randomUUID();
+    UUID categoryId = UUID.randomUUID();
+
+    Product updated = sampleProduct(productId, categoryId);
+    when(productService.update(eq(productId), any(ProductDTO.class), eq(categoryId), eq(new java.math.BigDecimal("1200000")), eq(new java.math.BigDecimal("5"))))
+      .thenReturn(updated);
+    when(productMapper.toProductDto(updated)).thenReturn(sampleProductDto(productId, categoryId));
+
+    String body = "{\n" +
+      "  \"product\": {\n" +
+      "    \"CategoryId\": \"" + categoryId + "\",\n" +
+      "    \"name\": \"Phone XYZ\",\n" +
+      "    \"image_url\": \"http://img/xyz\",\n" +
+      "    \"price\": \"1200000\",\n" +
+      "    \"stock\": \"5\"\n" +
+      "  }\n" +
+      "}";
+
+    webTestClient.patch().uri("/products/" + productId)
+      .headers(h -> h.setBasicAuth(adminUser, adminPass))
+      .contentType(MediaType.APPLICATION_JSON)
+      .bodyValue(body)
+      .exchange()
+      .expectStatus().isOk()
+      .expectBody()
+      .jsonPath("$.product.id").isEqualTo(productId.toString())
+      .jsonPath("$.product.CategoryId").isEqualTo(categoryId.toString());
+  }
+
+  @Test
+  @DisplayName("GET /products without auth returns 401 with authentication failed")
+  void security_unauthorized_401() {
+    webTestClient.get().uri("/products")
+      .exchange()
+      .expectStatus().isUnauthorized()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("authentication failed");
+  }
+
+  @Test
+  @DisplayName("GET /products with CUSTOMER role returns 403 with access rejected")
+  void security_forbidden_403() {
+    webTestClient.get().uri("/products")
+      .headers(h -> h.setBasicAuth(customerUser, customerPass))
+      .exchange()
+      .expectStatus().isForbidden()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("access rejected");
   }
 
 }

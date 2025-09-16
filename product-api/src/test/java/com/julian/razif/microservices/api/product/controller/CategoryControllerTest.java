@@ -30,6 +30,9 @@ import static org.mockito.Mockito.when;
 @Import(SecurityConfig.class)
 class CategoryControllerTest {
 
+  private String customerUser;
+  private String customerPass;
+
   @Autowired
   private WebTestClient webTestClient;
 
@@ -43,6 +46,8 @@ class CategoryControllerTest {
   void setUp() {
     adminUser = "admin";
     adminPass = "admin123";
+    customerUser = "customer";
+    customerPass = "customer123";
   }
 
   private Category sampleCategory(UUID id, String name) {
@@ -230,4 +235,26 @@ class CategoryControllerTest {
       .expectBody()
       .jsonPath("$.errors[0]").isEqualTo("not found");
   }
+
+  @Test
+  @DisplayName("GET /categories without auth returns 401 with authentication failed")
+  void security_categories_unauthorized_401() {
+    webTestClient.get().uri("/categories")
+      .exchange()
+      .expectStatus().isUnauthorized()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("authentication failed");
+  }
+
+  @Test
+  @DisplayName("GET /categories with CUSTOMER role returns 403 with access rejected")
+  void security_categories_forbidden_403() {
+    webTestClient.get().uri("/categories")
+      .headers(h -> h.setBasicAuth(customerUser, customerPass))
+      .exchange()
+      .expectStatus().isForbidden()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("access rejected");
+  }
+
 }

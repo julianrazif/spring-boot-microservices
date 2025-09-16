@@ -111,7 +111,6 @@ public class ProductController {
   }
 
   @PutMapping("/products/{productId}")
-  @PatchMapping("/products/{productId}")
   public ResponseEntity<?> update(
     @PathVariable("productId") String productId,
     @Valid @RequestBody(required = false) ProductEnvelope payload) {
@@ -148,6 +147,13 @@ public class ProductController {
     Product p = productService.update(id, req, categoryId, price, stock);
     if (p == null) return ResponseEntity.status(404).body(Map.of("errors", List.of("product not found")));
     return ResponseEntity.ok(Collections.singletonMap("product", productMapper.toProductDto(p)));
+  }
+
+  @PatchMapping("/products/{productId}")
+  public ResponseEntity<?> patchUpdate(
+    @PathVariable("productId") String productId,
+    @Valid @RequestBody(required = false) ProductEnvelope payload) {
+    return update(productId, payload);
   }
 
   @DeleteMapping("/products/{productId}")

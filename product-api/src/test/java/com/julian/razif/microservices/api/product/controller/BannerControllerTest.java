@@ -30,6 +30,9 @@ import static org.mockito.Mockito.when;
 @Import(SecurityConfig.class)
 class BannerControllerTest {
 
+  private String customerUser;
+  private String customerPass;
+
   @Autowired
   private WebTestClient webTestClient;
 
@@ -43,6 +46,8 @@ class BannerControllerTest {
   void setUp() {
     adminUser = "admin";
     adminPass = "admin123";
+    customerUser = "customer";
+    customerPass = "customer123";
   }
 
   private Banner sampleBanner(UUID id) {
@@ -257,4 +262,26 @@ class BannerControllerTest {
       .expectBody()
       .jsonPath("$.errors[0]").isEqualTo("not found");
   }
+
+  @Test
+  @DisplayName("GET /banners without auth returns 401 with authentication failed")
+  void security_banners_unauthorized_401() {
+    webTestClient.get().uri("/banners")
+      .exchange()
+      .expectStatus().isUnauthorized()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("authentication failed");
+  }
+
+  @Test
+  @DisplayName("GET /banners with CUSTOMER role returns 403 with access rejected")
+  void security_banners_forbidden_403() {
+    webTestClient.get().uri("/banners")
+      .headers(h -> h.setBasicAuth(customerUser, customerPass))
+      .exchange()
+      .expectStatus().isForbidden()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("access rejected");
+  }
+
 }
