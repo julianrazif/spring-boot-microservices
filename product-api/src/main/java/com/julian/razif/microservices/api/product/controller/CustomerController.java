@@ -1,54 +1,84 @@
 package com.julian.razif.microservices.api.product.controller;
 
+import com.julian.razif.microservices.api.product.ProductUtils;
 import com.julian.razif.microservices.api.product.mapper.ProductMapper;
+import com.julian.razif.microservices.api.product.service.CategoryService;
+import com.julian.razif.microservices.api.product.service.ProductService;
 import com.julian.razif.microservices.service.persistence.product.model.Category;
 import com.julian.razif.microservices.service.persistence.product.model.Product;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 import static com.julian.razif.microservices.api.product.ProductUtils.notFound;
+import static com.julian.razif.microservices.api.product.ProductUtils.parseBigDecimal;
 import static com.julian.razif.microservices.api.product.ProductUtils.parseUUID;
 
 @RestController
 @RequiredArgsConstructor
 public class CustomerController {
 
-  @PersistenceContext(unitName = "product-pu")
-  private EntityManager em;
-
   private final ProductMapper productMapper;
+  private final ProductService productService;
+  private final CategoryService categoryService;
 
   @GetMapping("/customer/products")
-  public ResponseEntity<Map<String, Object>> listProducts() {
-    List<Product> products = em.createQuery("select p from Product p", Product.class).getResultList();
+  public ResponseEntity<Map<String, Object>> listProducts(
+    @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+    @RequestParam(name = "size", required = false, defaultValue = "10") int size,
+    @RequestParam(name = "name", required = false) String name,
+    @RequestParam(name = "categoryId", required = false) String categoryIdStr,
+    @RequestParam(name = "minPrice", required = false) String minPriceStr,
+    @RequestParam(name = "maxPrice", required = false) String maxPriceStr) {
+
+    UUID categoryId = parseUUID(categoryIdStr);
+    BigDecimal minPrice = parseBigDecimal(minPriceStr);
+    BigDecimal maxPrice = parseBigDecimal(maxPriceStr);
+
+    if (page < 0) page = 0;
+    if (size <= 0) size = 10;
+    Pageable pageable = PageRequest.of(page, size);
+
+    Page<Product> products = productService.list(name, categoryId, minPrice, maxPrice, pageable);
+
     List<Map<String, Object>> productDtos = new ArrayList<>();
-    for (Product p : products) {
+    for (Product p : products.getContent()) {
       Map<String, Object> m = productMapper.toProductDto(p);
       productDtos.add(m);
     }
     Map<String, Object> data = new LinkedHashMap<>();
-    data.put("totalItems", products.size());
+    data.put("totalItems", products.getTotalElements());
     data.put("products", productDtos);
-    data.put("totalPages", 1);
-    data.put("currentPage", 0);
+    data.put("totalPages", products.getTotalPages());
+    data.put("currentPage", products.getNumber());
     return ResponseEntity.ok(Collections.singletonMap("data", data));
   }
 
   @GetMapping("/customer/categories")
-  public ResponseEntity<Map<String, Object>> listCategories() {
-    List<Category> categories = em.createQuery("select c from Category c", Category.class).getResultList();
+  public ResponseEntity<Map<String, Object>> listCategories(
+    @RequestParam(name = "page", required = false, defaultValue = "0") int page,
+    @RequestParam(name = "size", required = false, defaultValue = "10") int size,
+    @RequestParam(name = "name", required = false) String name) {
+
+    if (page < 0) page = 0;
+    if (size <= 0) size = 10;
+    Pageable pageable = PageRequest.of(page, size);
+
+    Page<Category> categories = categoryService.list(name, pageable);
     Map<String, Object> data = new LinkedHashMap<>();
-    data.put("totalItems", categories.size());
-    data.put("categories", categories);
-    data.put("totalPages", 1);
-    data.put("currentPage", 0);
+    data.put("totalItems", categories.getTotalElements());
+    data.put("categories", categories.getContent());
+    data.put("totalPages", categories.getTotalPages());
+    data.put("currentPage", categories.getNumber());
     return ResponseEntity.ok(Collections.singletonMap("data", data));
   }
 
@@ -58,10 +88,10 @@ public class CustomerController {
 
     UUID id = parseUUID(productId);
     if (id == null) return notFound();
-    Product p = em.find(Product.class, id);
-    if (p == null) return notFound();
-    Map<String, Object> m = productMapper.toProductDto(p);
-    return ResponseEntity.ok(Collections.singletonMap("data", m));
+
+    return productService.getById(id)
+      .<ResponseEntity<?>>map(p -> ResponseEntity.ok(Collections.singletonMap("data", productMapper.toProductDto(p))))
+      .orElseGet(ProductUtils::notFound);
   }
 
   @GetMapping("/customer/categories/{categoryId}")
@@ -70,9 +100,10 @@ public class CustomerController {
 
     UUID id = parseUUID(categoryId);
     if (id == null) return notFound();
-    Category c = em.find(Category.class, id);
-    if (c == null) return notFound();
-    return ResponseEntity.ok(Collections.singletonMap("data", c));
+
+    return categoryService.getById(id)
+      .<ResponseEntity<?>>map(c -> ResponseEntity.ok(Collections.singletonMap("data", c)))
+      .orElseGet(ProductUtils::notFound);
   }
 
 }
