@@ -10,6 +10,7 @@ import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -33,16 +34,28 @@ public class ProductJPAConfiguration {
   private String username;
   @Value("${spring.datasource.product.password}")
   private String password;
+  @Value("${spring.datasource.product.driver-class-name:org.postgresql.Driver}")
+  private String driverClassName;
+  @Value("${spring.datasource.product.hikari.transaction-isolation:TRANSACTION_READ_COMMITTED}")
+  private String transactionIsolation;
 
+  @Primary
   @Bean(name = "productDataSource")
   @ConfigurationProperties("spring.datasource.product.hikari")
   public HikariDataSource productDataSource() {
-    return DataSourceBuilder.create()
+    HikariDataSource ds = DataSourceBuilder.create()
       .type(HikariDataSource.class)
+      .driverClassName(driverClassName)
       .url(url)
       .username(username)
       .password(password)
       .build();
+
+    if (transactionIsolation != null && !transactionIsolation.isBlank()) {
+      ds.setTransactionIsolation(transactionIsolation);
+    }
+
+    return ds;
   }
 
   @Bean(name = "productEntityManagerFactory")
@@ -61,7 +74,6 @@ public class ProductJPAConfiguration {
     // ShowSql is disabled for production performance
     // GenerateDdl is disabled to prevent automatic schema generation
     HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-    vendorAdapter.setDatabasePlatform("org.hibernate.dialect.PostgreSQL10Dialect");
     vendorAdapter.setShowSql(false);
     vendorAdapter.setGenerateDdl(false);
 
