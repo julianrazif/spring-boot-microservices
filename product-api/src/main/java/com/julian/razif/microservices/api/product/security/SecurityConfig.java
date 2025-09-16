@@ -76,10 +76,12 @@ public class SecurityConfig {
     http.authorizeExchange(exchanges -> exchanges
       // Public endpoints
       .pathMatchers(HttpMethod.POST, "/login", "/register").permitAll()
-      .pathMatchers(HttpMethod.GET, "/customer/**").permitAll()
 
-      // Customer cart endpoints require authentication
+      // Customer cart endpoints require authentication (place before general customer GET rule)
       .pathMatchers("/customer/carts/**").hasAnyRole("CUSTOMER", "ADMIN")
+
+      // Public customer browse endpoints
+      .pathMatchers(HttpMethod.GET, "/customer/**").permitAll()
 
       // Admin-only endpoints
       .pathMatchers("/products/**", "/categories/**", "/banners/**").hasRole("ADMIN")
