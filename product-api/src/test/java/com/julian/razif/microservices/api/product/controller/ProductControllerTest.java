@@ -462,4 +462,71 @@ class ProductControllerTest {
       .jsonPath("$.errors[0]").isEqualTo("access rejected");
   }
 
+  @Test
+  @DisplayName("POST /products without auth returns 401 with authentication failed")
+  void post_unauthorized_401() {
+    webTestClient.post().uri("/products")
+      .exchange()
+      .expectStatus().isUnauthorized()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("authentication failed");
+  }
+
+  @Test
+  @DisplayName("POST /products with CUSTOMER role returns 403 with access rejected")
+  void post_forbidden_403() {
+    webTestClient.post().uri("/products")
+      .headers(h -> h.setBasicAuth(customerUser, customerPass))
+      .exchange()
+      .expectStatus().isForbidden()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("access rejected");
+  }
+
+  @Test
+  @DisplayName("PUT /products/{id} without auth returns 401 with authentication failed")
+  void put_unauthorized_401() {
+    UUID id = java.util.UUID.randomUUID();
+    webTestClient.put().uri("/products/" + id)
+      .exchange()
+      .expectStatus().isUnauthorized()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("authentication failed");
+  }
+
+  @Test
+  @DisplayName("PUT /products/{id} with CUSTOMER role returns 403 with access rejected")
+  void put_forbidden_403() {
+    UUID id = java.util.UUID.randomUUID();
+    webTestClient.put().uri("/products/" + id)
+      .headers(h -> h.setBasicAuth(customerUser, customerPass))
+      .exchange()
+      .expectStatus().isForbidden()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("access rejected");
+  }
+
+  @Test
+  @DisplayName("DELETE /products/{id} without auth returns 401 with authentication failed")
+  void delete_unauthorized_401() {
+    UUID id = java.util.UUID.randomUUID();
+    webTestClient.delete().uri("/products/" + id)
+      .exchange()
+      .expectStatus().isUnauthorized()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("authentication failed");
+  }
+
+  @Test
+  @DisplayName("DELETE /products/{id} with CUSTOMER role returns 403 with access rejected")
+  void delete_forbidden_403() {
+    UUID id = java.util.UUID.randomUUID();
+    webTestClient.delete().uri("/products/" + id)
+      .headers(h -> h.setBasicAuth(customerUser, customerPass))
+      .exchange()
+      .expectStatus().isForbidden()
+      .expectBody()
+      .jsonPath("$.errors[0]").isEqualTo("access rejected");
+  }
+
 }
