@@ -13,6 +13,10 @@
 
     <artifactId>product-api</artifactId>
 
+    <properties>
+        <jacoco.version>0.8.12</jacoco.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.julian.razif.microservices</groupId>
@@ -132,6 +136,57 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+
+            <!-- JaCoCo code coverage with enforcement -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>check</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>BUNDLE</element>
+                                    <includes>
+                                        <include>**/controller/ProductController*.class</include>
+                                        <include>**/controller/CategoryController*.class</include>
+                                        <include>**/controller/BannerController*.class</include>
+                                        <include>**/controller/CustomerController*.class</include>
+                                        <include>**/controller/CartController*.class</include>
+                                        <include>**/controller/UserController*.class</include>
+                                    </includes>
+                                    <limits>
+                                        <limit>
+                                            <counter>INSTRUCTION</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.75</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
