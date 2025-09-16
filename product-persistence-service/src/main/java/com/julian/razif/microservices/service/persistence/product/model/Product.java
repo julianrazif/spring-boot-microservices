@@ -3,6 +3,7 @@ package com.julian.razif.microservices.service.persistence.product.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -19,6 +20,7 @@ import java.util.UUID;
 public class Product {
 
   @Id
+  @ColumnDefault("uuid_generate_v4()")
   @Column(name = "id", nullable = false)
   private UUID id;
 
@@ -33,11 +35,11 @@ public class Product {
   private String imageUrl;
 
   @NotNull
-  @Column(name = "price", nullable = false, precision = 20)
+  @Column(name = "price", nullable = false, precision = 20, scale = 0)
   private BigDecimal price;
 
   @NotNull
-  @Column(name = "stock", nullable = false, precision = 10)
+  @Column(name = "stock", nullable = false, precision = 15, scale = 4)
   private BigDecimal stock;
 
   @NotNull

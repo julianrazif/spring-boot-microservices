@@ -31,7 +31,7 @@ public class User {
 
   @Size(max = 50)
   @NotNull
-  @Column(name = "email", nullable = false, length = 50)
+  @Column(name = "email", nullable = false, length = 50, unique = true)
   private String email;
 
   @Size(max = 10000)
@@ -39,10 +39,10 @@ public class User {
   @Column(name = "password", nullable = false, length = 10000)
   private String password;
 
-  @Size(max = 25)
+  @Size(max = 50)
   @NotNull
   @ColumnDefault("'customer'")
-  @Column(name = "role", nullable = false, length = 25)
+  @Column(name = "role", nullable = false, length = 50)
   private String role;
 
   @NotNull
